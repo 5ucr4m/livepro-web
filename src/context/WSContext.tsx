@@ -12,45 +12,16 @@ import { io } from "socket.io-client";
 import Peer, { DataConnection } from "peerjs";
 
 interface IWSContextData {
-  username: string;
   myVideo?: RefObject<HTMLVideoElement>;
   userVideo?: RefObject<HTMLVideoElement>;
   connectToPeer: (id: string) => void;
   sendMessage: (message: string) => void;
 }
 
-const socket = io("http://192.168.31.41:9001");
-const peer = new Peer("5ucr4m-web");
-// const peer = new Peer("5ucr4m-web", {
-//   host: "192.168.31.41",
-//   port: 9002,
-//   path: "/peerjs",
-//   config: {
-//     iceServers: [
-//       { url: "stun:stun01.sipphone.com" },
-//       { url: "stun:stun.ekiga.net" },
-//       { url: "stun:stunserver.org" },
-//       { url: "stun:stun.softjoys.com" },
-//       { url: "stun:stun.voiparound.com" },
-//       { url: "stun:stun.voipbuster.com" },
-//       { url: "stun:stun.voipstunt.com" },
-//       { url: "stun:stun.voxgratia.org" },
-//       { url: "stun:stun.xten.com" },
-//       {
-//         url: "turn:192.158.29.39:3478?transport=udp",
-//         credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-//         username: "28224511:1379330808",
-//       },
-//       {
-//         url: "turn:192.158.29.39:3478?transport=tcp",
-//         credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-//         username: "28224511:1379330808",
-//       },
-//     ],
-//   },
-
-//   debug: 3,
-// });
+const socket = io("https://livepro.onrender.com");
+const peer = new Peer("5ucr4m-web", {
+  debug: 3,
+});
 
 const SocketContext = createContext<IWSContextData>({} as IWSContextData);
 
@@ -62,16 +33,29 @@ export const CustomerSocketProvider: React.FC<{
   const [peerID, setPeerID] = useState<string>("");
   const [isSocketConnected, setIsSocketConnected] = useState<boolean>(false);
   const [isPeerConnected, setIsPeerConnected] = useState<boolean>(false);
-  const [username, setUsername] = useState<string>("5ucr4m");
 
   const myVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
-  const connectionRef = useRef<MediaStream>(null);
 
   useEffect(() => {
     socket.on("connect", () => {
       setSocketID(socket.id);
       setIsSocketConnected(true);
+    });
+
+    socket.on("createMessage", (data) => {
+      console.log(data);
+    });
+
+    socket.on("status", (data) => {
+      if (data.status === "disconnected") {
+        if (connection) {
+          connection.close();
+        }
+        if (userVideo.current) {
+          userVideo.current.srcObject = null;
+        }
+      }
     });
 
     socket.on("disconnect", () => {
@@ -85,35 +69,15 @@ export const CustomerSocketProvider: React.FC<{
       setPeerID(id);
       setIsPeerConnected(true);
       socket.emit("userPeer", id);
-      socket.emit("createMessage", `peerID: ${id}`);
-    });
-
-    peer.on("connection", (conn) => {
-      console.log("connection", conn);
-      conn.send("Hello! estou conectado");
-
-      conn.on("data", (data) => {
-        console.log(data);
-      });
-
-      conn.on("close", () => {
-        console.log("desconectado");
-      });
     });
 
     peer.on("call", (call) => {
-      console.log("call", call);
-
       call.answer(myVideo.current?.srcObject as MediaStream);
 
       call.on("stream", (userVideoStream) => {
         if (userVideo.current) {
           userVideo.current.srcObject = userVideoStream;
         }
-      });
-
-      call.on("close", () => {
-        console.log("desconectado");
       });
     });
   }, []);
@@ -139,11 +103,6 @@ export const CustomerSocketProvider: React.FC<{
     conn.on("data", (data) => {
       console.log(data);
     });
-
-    conn.on("close", () => {
-      setConnection(null);
-      console.log("desconectado");
-    });
   };
 
   const sendMessage = useCallback(
@@ -158,7 +117,6 @@ export const CustomerSocketProvider: React.FC<{
 
   const values = useMemo(
     () => ({
-      username,
       isSocketConnected,
       isPeerConnected,
       peerID,
@@ -168,12 +126,8 @@ export const CustomerSocketProvider: React.FC<{
       connectToPeer,
       sendMessage,
     }),
-    [username, isSocketConnected, isPeerConnected]
+    [isSocketConnected, isPeerConnected]
   );
-
-  useEffect(() => {
-    console.log(values);
-  }, [values]);
 
   return (
     <SocketContext.Provider value={values}>{children}</SocketContext.Provider>
