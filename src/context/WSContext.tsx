@@ -20,8 +20,8 @@ interface IWSContextData {
 
 const socket = io("https://livepro.onrender.com");
 
-const queryParameters = new URLSearchParams(window.location.search)
-const me = queryParameters.get("me")
+const queryParameters = new URLSearchParams(window.location.search);
+const me = queryParameters.get("me");
 
 const peer = new Peer(me ?? "web", {
   debug: 3,
@@ -76,10 +76,12 @@ export const CustomerSocketProvider: React.FC<{
     });
 
     peer.on("call", (call) => {
+      console.log(call);
       call.answer(myVideo.current?.srcObject as MediaStream);
 
       call.on("stream", (userVideoStream) => {
         if (userVideo.current) {
+          console.log(userVideoStream);
           userVideo.current.srcObject = userVideoStream;
         }
       });
@@ -98,6 +100,7 @@ export const CustomerSocketProvider: React.FC<{
 
   const connectToPeer = (peerID: string) => {
     const conn = peer.connect(peerID);
+    const _conn = peer.call(peerID, myVideo.current?.srcObject as MediaStream);
 
     conn.on("open", () => {
       setConnection(conn);
@@ -106,6 +109,12 @@ export const CustomerSocketProvider: React.FC<{
 
     conn.on("data", (data) => {
       console.log(data);
+    });
+
+    _conn.on("stream", (event) => {
+      if (userVideo.current) {
+        userVideo.current.srcObject = event;
+      }
     });
   };
 

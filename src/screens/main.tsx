@@ -2,16 +2,18 @@ import { AspectRatio, Button, Flex, HStack, Text } from "@chakra-ui/react";
 import { useWSConnection } from "../context/WSContext";
 
 export default function MainScreen() {
-  
-  const queryParameters = new URLSearchParams(window.location.search)
-  const to = queryParameters.get("to")
+  const queryParameters = new URLSearchParams(window.location.search);
+  const me = queryParameters.get("me");
+  const to = queryParameters.get("to");
 
   const { connectToPeer, sendMessage, userVideo, myVideo } = useWSConnection();
   return (
     <Flex flexDir="column" w="100%" h="100vh" bg="#12171f">
       <Text color="white">Main Screen</Text>
+      <Text color="white">{me}</Text>
+      <Text color="white">{to}</Text>
       <HStack>
-        <Button h="45px" onClick={() => connectToPeer( to ?? "flutter")}>
+        <Button h="45px" onClick={() => connectToPeer(to ?? "flutter")}>
           Connectar
         </Button>
         <Button h="45px" onClick={() => sendMessage("oi cara...")}>
@@ -30,17 +32,16 @@ export default function MainScreen() {
             />
           </AspectRatio>
         )}
-        {userVideo && (
-          <AspectRatio width="460px" ratio={16 / 9} background="#343434">
-            <video
-              data-testid="peer-video"
-              style={{ width: "100%" }}
-              ref={userVideo}
-              autoPlay
-              muted={true}
-            />
-          </AspectRatio>
-        )}
+
+        <AspectRatio width="460px" ratio={16 / 9} background="#343434">
+          <video
+            data-testid="peer-video"
+            style={{ width: "100%" }}
+            ref={userVideo}
+            autoPlay
+            muted={true}
+          />
+        </AspectRatio>
       </HStack>
     </Flex>
   );
