@@ -1,8 +1,11 @@
 import { AspectRatio, Button, Flex, HStack, Text } from "@chakra-ui/react";
 import { useWSConnection } from "../context/WSContext";
+import { useState } from "react";
 
 export default function MainScreen() {
   const queryParameters = new URLSearchParams(window.location.search);
+  const [myMicMutted, setMyMicMutted] = useState<boolean>(false);
+  const [userMicMutted, setUserMicMutted] = useState<boolean>(false);
   const me = queryParameters.get("me");
   const to = queryParameters.get("to");
 
@@ -28,7 +31,8 @@ export default function MainScreen() {
               style={{ width: "100%" }}
               ref={myVideo}
               autoPlay
-              muted={true}
+              muted={myMicMutted}
+              onClick={() => setMyMicMutted(!myMicMutted)}
             />
           </AspectRatio>
         )}
@@ -39,7 +43,8 @@ export default function MainScreen() {
             style={{ width: "100%" }}
             ref={userVideo}
             autoPlay
-            muted={true}
+            muted={userMicMutted}
+            onClick={() => setUserMicMutted(!userMicMutted)}
           />
         </AspectRatio>
       </HStack>
