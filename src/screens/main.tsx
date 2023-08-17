@@ -2,12 +2,16 @@ import { AspectRatio, Button, Flex, HStack, Text } from "@chakra-ui/react";
 import { useWSConnection } from "../context/WSContext";
 
 export default function MainScreen() {
+  
+  const queryParameters = new URLSearchParams(window.location.search)
+  const to = queryParameters.get("to")
+
   const { connectToPeer, sendMessage, userVideo, myVideo } = useWSConnection();
   return (
     <Flex flexDir="column" w="100%" h="100vh" bg="#12171f">
       <Text color="white">Main Screen</Text>
       <HStack>
-        <Button h="45px" onClick={() => connectToPeer("5ucr4m-flutter")}>
+        <Button h="45px" onClick={() => connectToPeer( to ?? "flutter")}>
           Connectar
         </Button>
         <Button h="45px" onClick={() => sendMessage("oi cara...")}>

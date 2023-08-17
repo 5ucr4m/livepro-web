@@ -19,7 +19,11 @@ interface IWSContextData {
 }
 
 const socket = io("https://livepro.onrender.com");
-const peer = new Peer("5ucr4m-web", {
+
+const queryParameters = new URLSearchParams(window.location.search)
+const me = queryParameters.get("me")
+
+const peer = new Peer(me ?? "web", {
   debug: 3,
 });
 
